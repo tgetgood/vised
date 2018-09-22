@@ -1,0 +1,24 @@
+#+TITLE: Visèd
+
+Structural editor and residential programming environment for interactive
+graphics.
+
+N.B.: This is an early stage thought experiment so don't assume I know what I'm
+talking about.
+
+* Overview
+
+	[[https://github.com/tgetgood/falloleen][Falloleen]] is my latest attempt at a declarative data description for
+	graphics. It has a lot of flaws, but the biggest is the fact that text is just
+	a terrible medium in which to talk about graphics.
+
+	This visual editor is an attempt to address that problem. I guarantee you that
+	will expose new problems in the graphics language itself, but that's a good
+	thing.
+
+* License
+
+	Copyright © 2018 Thomas Getgood
+
+	Distributed under the Eclipse Public License either version 1.0 or (at your
+	option) any later version.
