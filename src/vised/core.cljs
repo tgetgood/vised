@@ -53,19 +53,22 @@
 (set! cljs/*load-fn* custom-load!)
 
 (fall/deftemplate code-panel
-  {:code ""}
-  (let [lines (str/split-lines code)]
-    (fall/with-style {:font "15px monospace"}
-      (map-indexed (fn [i line]
-                     (-> (assoc fall/text :text line)
-                         (fall/translate [0 (* -1 16 i)])))
-                   lines))))
+  {:code "" :size 15}
+  (let [lines (str/split-lines code)
+        tw (js/Math.floor (/ (js/Math.log (count lines)) (js/Math.log 10)))]
+    (fall/with-style {:font (str size "px monospace")}
+      [
+       (map-indexed (fn [i line]
+                      (-> [(fall/translate (assoc fall/text :text line)
+                                           [(* (inc tw) size 1.3) 0])
+                           (assoc fall/text :text (str (inc i) ":"))]
+                          (fall/translate [0 (* -1 (* size 1.3) i)])))
+                    lines)])))
 
 (def code-str
   "(-> [(assoc falloleen.core/circle :radius 200)
          (assoc falloleen.core/line :to [500 1000])]
-       (falloleen.core/translate [200 200])
-  )")
+       (falloleen.core/translate [200 200]))")
 
 (def code-form
   (read-string code-str))
@@ -81,10 +84,10 @@
   (let [[w h] (fall/dimensions host)]
     (fall/translate
      (assoc code-panel :code code)
-     [10 (- h 100)])))
+     [10 (- h 30)])))
 
 (defn frame [shape]
-  (let [text-width 450
+  (let [text-width 500
         [w h] (fall/dimensions host)
         box (assoc fall/rectangle :width (- w text-width) :height h)]
     (-> [(fall/clip shape box)
