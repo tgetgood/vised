@@ -1,5 +1,6 @@
 {:deps
- {falloleen                 {:local/root "/home/thomas/projects/falloleen/"}
-  net.cgrand/macrovich      {:mvn/version "0.2.1"}
-  org.clojure/core.async    {:mvn/version "0.4.474"}}
+ {falloleen              {:local/root "/home/thomas/projects/falloleen/"}
+  jarohen/chord          {:mvn/version "0.8.1"}
+  net.cgrand/macrovich   {:mvn/version "0.2.1"}
+  org.clojure/core.async {:mvn/version "0.4.474"}}
  :paths ["src" "resources" "target"]}

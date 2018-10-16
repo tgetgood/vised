@@ -1,13 +1,18 @@
 (ns ^:figwheel-hooks vised.core
-  (:import goog.net.XhrIo)
-  (:require [cljs.js :as cljs]
+  (:require-macros [vised.macros :as macros])
+  (:require [chord.client :as chord]
+            [cljs.core.async :as async :include-macros true]
+            [cljs.tools.reader.edn :as edn]
+            [cljs.js :as cljs]
             [cljs.pprint :refer [pprint]]
-            [cljs.reader :refer [read-string]]
+            [cljs.reader :refer [read-string] :refer-macros [add-data-readers]]
             [clojure.string :as str]
             [falloleen.core :as fall]
-            [falloleen.hosts :as hosts]))
+            [falloleen.hosts :as hosts])
+  (:import goog.net.XhrIo))
 
 (enable-console-print!)
+(macros/init-reader!)
 
 (defn ^:private fix-goog-path [path]
   ; goog/string -> goog/string/string
@@ -98,9 +103,41 @@
   [(code-window code)
    (frame shape)])
 
+
+(defonce ws-ch (atom nil))
+(defonce v (atom nil))
+
+(defn init-ws-connection []
+  (async/go
+    (let [{:keys [ws-channel error]} (<! (chord/ws-ch "ws://localhost:3333"))]
+      (if error
+        (.error js/console error)
+        (do
+          (reset! ws-ch ws-channel)
+          (async/go-loop []
+            (when-let [message (async/<! @ws-ch)]
+              (println message)
+              (reset! v (:message message))
+              (let [image (:message message)]
+                (fall/draw! image host)
+                (recur)))))))))
+
 (defn ^:export init []
-  (cljs/eval s code-form #(fall/draw! (screen pretty-code-str (:value %)) host)))
+  (init-ws-connection)
+
+  #_(cljs/eval s code-form #(fall/draw! (screen pretty-code-str (:value %)) host)))
+
+(defn tc []
+  (when @ws-ch
+    (async/go
+      (.log js/console @ws-ch)
+      (async/>! @ws-ch "is it safe?")
+      (.log js/console (async/<! @ws-ch)))))
 
 (defn ^:after-load on-js-reload []
   (init)
-)
+  )
+
+
+(cljs.reader/register-tag-parser! 'atom (fn [x] (atom nil)))
+(println (read-string @v))
