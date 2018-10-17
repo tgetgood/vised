@@ -1,8 +1,9 @@
 (ns vised.core
   (:require [chord.http-kit :refer [wrap-websocket-handler]]
-            [org.httpkit.server :as http]
             [clojure.core.async :as async]
-            [falloleen.core :as fc]))
+            [falloleen.core :as fc]
+            [org.httpkit.server :as http]
+            [vised.components :as components]))
 
 (defonce connection (atom nil))
 
@@ -25,19 +26,21 @@
 
 (def form (read-string code-str))
 
+(def dimensions [1000 1400])
+
 (defn code-window [code]
-  (let [[w h] (fall/dimensions host)]
-    (fall/translate
-     (assoc code-panel :code code)
+  (let [[w h] dimensions]
+    (fc/translate
+     (assoc components/code-panel :code code)
      [10 (- h 30)])))
 
 (defn frame [shape]
   (let [text-width 500
-        [w h] (fall/dimensions host)
-        box (assoc fall/rectangle :width (- w text-width) :height h)]
-    (-> [(fall/clip shape box)
-         (fall/style box {:stroke :grey :fill :none :opacity 0.1})]
-        (fall/translate [text-width 0]))))
+        [w h] dimensions
+        box (assoc fc/rectangle :width (- w text-width) :height h)]
+    (-> [(fc/clip shape box)
+         (fc/style box {:stroke :grey :fill :none :opacity 0.1})]
+        (fc/translate [text-width 0]))))
 
 (defn screen [code shape]
   [(code-window code)
