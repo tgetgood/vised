@@ -20,6 +20,9 @@
 
 (defmacro init-reader-for! [& nses]
   `(do
+     ;; HACK: This shouldn't be necessary. I don't actually see a problem with
+     ;; sending atoms over the wire in principle if they contain plain edn, but
+     ;; there's probably a reason...
      (cljs.reader/register-tag-parser! ~(quote 'atom) (fn [v#] (atom (:val v#))))
      ~@(map
         (fn [ns]
