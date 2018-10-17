@@ -12,7 +12,10 @@
   (:import goog.net.XhrIo))
 
 (enable-console-print!)
-(macros/init-reader!)
+
+(macros/init-reader-for!
+ falloleen.lang
+ falloleen.core)
 
 (defn ^:private fix-goog-path [path]
   ; goog/string -> goog/string/string
@@ -117,7 +120,7 @@
           (async/go-loop []
             (when-let [message (async/<! @ws-ch)]
               (println message)
-              (reset! v (:message message))
+              (reset! v message)
               (let [image (:message message)]
                 (fall/draw! image host)
                 (recur)))))))))
