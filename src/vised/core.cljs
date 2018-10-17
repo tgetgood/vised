@@ -5,11 +5,11 @@
             [clojure.string :as str]
             [falloleen.core :as fall]
             [falloleen.hosts :as hosts])
-  (:require-macros [vised.macros :as macros]))
+  (:require-macros [vised.reflection :refer [init-reader-for!]]))
 
 (enable-console-print!)
 
-(macros/init-reader-for!
+(init-reader-for!
  vised.components
  falloleen.lang
  falloleen.core)
