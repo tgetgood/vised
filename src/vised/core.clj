@@ -24,3 +24,21 @@
        (fc/translate [200 200]))")
 
 (def form (read-string code-str))
+
+(defn code-window [code]
+  (let [[w h] (fall/dimensions host)]
+    (fall/translate
+     (assoc code-panel :code code)
+     [10 (- h 30)])))
+
+(defn frame [shape]
+  (let [text-width 500
+        [w h] (fall/dimensions host)
+        box (assoc fall/rectangle :width (- w text-width) :height h)]
+    (-> [(fall/clip shape box)
+         (fall/style box {:stroke :grey :fill :none :opacity 0.1})]
+        (fall/translate [text-width 0]))))
+
+(defn screen [code shape]
+  [(code-window code)
+   (frame shape)])
