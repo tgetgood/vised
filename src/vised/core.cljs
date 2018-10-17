@@ -1,64 +1,17 @@
 (ns ^:figwheel-hooks vised.core
-  (:require-macros [vised.macros :as macros])
   (:require [chord.client :as chord]
             [cljs.core.async :as async :include-macros true]
-            [cljs.tools.reader.edn :as edn]
-            [cljs.js :as cljs]
-            [cljs.pprint :refer [pprint]]
-            [cljs.reader :refer [read-string] :refer-macros [add-data-readers]]
+            [cljs.reader :refer [read-string]]
             [clojure.string :as str]
             [falloleen.core :as fall]
             [falloleen.hosts :as hosts])
-  (:import goog.net.XhrIo))
+  (:require-macros [vised.macros :as macros]))
 
 (enable-console-print!)
 
 (macros/init-reader-for!
  falloleen.lang
  falloleen.core)
-
-(defn ^:private fix-goog-path [path]
-  ; goog/string -> goog/string/string
-  ; goog/string/StringBuffer -> goog/string/stringbuffer
-  (let [parts (str/split path #"/")
-        last-part (last parts)
-        new-parts (concat
-                    (butlast parts)
-                    (if (= last-part (str/lower-case last-part))
-                      [last-part last-part]
-                      [(str/lower-case last-part)]))]
-    (str/join "/" new-parts)))
-
-(defn ^:private custom-load!
-  ([opts cb]
-   (if (re-matches #"^goog/.*" (:path opts))
-     (custom-load!
-      (update opts :path fix-goog-path)
-      [".js"]
-      cb)
-     (custom-load!
-      opts
-      (if (:macros opts)
-        [".clj" ".cljc"]
-        [".cljs" ".cljc" ".js"])
-      cb)))
-  ([opts extensions cb]
-   (if-let [extension (first extensions)]
-     (try
-       (.send XhrIo
-              (str (:path opts) extension)
-              (fn [e]
-                (if (.isSuccess (.-target e))
-                  (cb {:lang (if (= extension ".js") :js :clj)
-                       :source (.. e -target getResponseText)})
-                  (custom-load! opts (rest extensions) cb))))
-       (catch js/Error _
-         (custom-load! opts (rest extensions) cb)))
-     (cb {:lang :clj :source ""}))))
-
-
-(set! cljs/*eval-fn* cljs/js-eval)
-(set! cljs/*load-fn* custom-load!)
 
 (fall/deftemplate code-panel
   {:code "" :size 15}
@@ -73,20 +26,7 @@
                           (fall/translate [0 (* -1 (* size 1.3) i)])))
                     lines)])))
 
-(def code-str
-  "(-> [(assoc falloleen.core/circle :radius 200)
-         (assoc falloleen.core/line :to [500 1000])]
-       (falloleen.core/translate [200 200]))")
-
-(def code-form
-  (read-string code-str))
-
-(def pretty-code-str
-  (with-out-str (pprint code-form)))
-
 (defonce host (hosts/default-host {:size :fullscreen}))
-
-(def s (cljs/empty-state))
 
 (defn code-window [code]
   (let [[w h] (fall/dimensions host)]
@@ -105,7 +45,6 @@
 (defn screen [code shape]
   [(code-window code)
    (frame shape)])
-
 
 (defonce ws-ch (atom nil))
 (defonce v (atom nil))
@@ -126,21 +65,7 @@
                 (recur)))))))))
 
 (defn ^:export init []
-  (init-ws-connection)
-
-  #_(cljs/eval s code-form #(fall/draw! (screen pretty-code-str (:value %)) host)))
-
-(defn tc []
-  (when @ws-ch
-    (async/go
-      (.log js/console @ws-ch)
-      (async/>! @ws-ch "is it safe?")
-      (.log js/console (async/<! @ws-ch)))))
+  (init-ws-connection))
 
 (defn ^:after-load on-js-reload []
-  (init)
-  )
-
-
-(cljs.reader/register-tag-parser! 'atom (fn [x] (atom nil)))
-(println (read-string @v))
+  (init))
