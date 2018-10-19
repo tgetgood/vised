@@ -1,6 +1,7 @@
 (ns vised.core
   (:require [chord.http-kit :refer [wrap-websocket-handler]]
             [clojure.core.async :as async]
+            [clojure.pprint :refer [pprint]]
             [falloleen.core :as fc]
             [org.httpkit.server :as http]
             [vised.components :as components]))
@@ -19,14 +20,14 @@
 (defn init! []
   (reset! stop (http/run-server (-> #'handler wrap-websocket-handler) {:port 3333})))
 
-(def code-str
+(def code
   "(-> [(assoc fc/circle :radius 200)
          (assoc fc/line :to [500 1000])]
        (fc/translate [200 200]))")
 
-(def form (read-string code-str))
+(def form (read-string code))
 
-(def dimensions [1000 1400])
+(def dimensions [1056 1106])
 
 (defn code-window [code]
   (let [[w h] dimensions]
@@ -45,3 +46,8 @@
 (defn screen [code shape]
   [(code-window code)
    (frame shape)])
+
+(defn send-code! []
+  (when @connection
+    (async/put! @connection (screen (with-out-str (pprint form))
+                                    (eval form)))))

@@ -4,7 +4,8 @@
             [cljs.reader :refer [read-string]]
             [clojure.string :as str]
             [falloleen.core :as fall]
-            [falloleen.hosts :as hosts])
+            [falloleen.hosts :as hosts]
+            [vised.components :as components])
   (:require-macros [vised.reflection :refer [init-reader-for!]]))
 
 (enable-console-print!)

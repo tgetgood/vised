@@ -4,12 +4,11 @@
             [falloleen.math :as math]))
 
 (f/deftemplate code-panel
-  {:code "" :size 15}
+  {:code "" :size 12}
   (let [lines (str/split-lines code)
         tw (math/floor (/ (math/log (count lines)) (math/log 10)))]
     (f/with-style {:font (str size "px monospace")}
       [(-> f/line
-           (assoc :from [tw 0] :to [tw 2000]) ; HACK: grab the screen height
            (f/style {:opacity 0.4}))
        (map-indexed (fn [i line]
                       (-> [(f/translate (assoc f/text :text line)
