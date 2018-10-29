@@ -8,24 +8,21 @@
 
 (defonce connection (atom nil))
 
-(defn handler [{:keys [ws-channel] :as req}]
-  (async/go
-    (reset! connection ws-channel)))
+(defonce connections (atom {}))
+(defonce view-map (atom {}))
 
 (defonce stop (atom nil))
 
 (defn stop! []
   (@stop))
 
-(defn init! []
-  (reset! stop (http/run-server (-> #'handler wrap-websocket-handler) {:port 3333})))
-
 (def code
-  "(-> [(assoc fc/circle :radius 200)
-         (assoc fc/line :to [500 1000])]
-       (fc/translate [200 200]))")
+  )
 
-(def form (read-string code))
+(def form
+  '(-> [(assoc fc/circle :radius 200)
+        (assoc fc/line :to [500 1000])]
+       (fc/translate [200 200])))
 
 (def dimensions [1056 1106])
 
@@ -47,7 +44,25 @@
   [(code-window code)
    (frame shape)])
 
+(defn send-to! [x]
+  (require '[falloleen.core :as fc])
+  (let [image (screen (with-out-str (pprint form))
+                      (eval form))]
+    (async/put! x image)))
+
 (defn send-code! []
   (when @connection
-    (async/put! @connection (screen (with-out-str (pprint form))
-                                    (eval form)))))
+    (send-to! @connection)))
+
+;;;;; Server
+
+(defn handler [{:keys [ws-channel] :as req}]
+  (async/go
+    (async/>! ws-channel :identify)
+    (let [id (:message (async/<! ws-channel))]
+      (swap! connections assoc id ws-channel)
+      (when-let [view (get @view-map id)]
+        (async/>! ws-channel view)))))
+
+(defn init! []
+  (reset! stop (http/run-server (-> #'handler wrap-websocket-handler) {:port 3333})))
